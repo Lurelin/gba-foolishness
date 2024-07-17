@@ -28,4 +28,4 @@ game:
 
 #cleans temp folder
 clean:
-	rm -f $(TEMP)/program.o $(TEMP)/program.elf
+	rm -f $(TEMP)/program.o $(TEMP)/toolbox.o $(TEMP)/program.elf
