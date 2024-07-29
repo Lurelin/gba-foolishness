@@ -1,2 +1,2 @@
-# gba-nonograms
-Nonogram game for gameboy advance
+# gba-foolishness
+Literally just me messing around with the GBA
