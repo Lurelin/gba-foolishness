@@ -7,9 +7,9 @@ MGBA := "C:/Program Files/mGBA/mGBA.exe"
 INCLUDE := src/include
 
 TEMP := build/temp
-SRCFILE := src/main.cpp
-TOOLBOX := src/toolbox.cpp
-OUTFILE := build/nonograms.gba
+SRCFILE := src/main.c
+TOOLBOX := src/toolbox.c
+OUTFILE := build/foolishness.gba
 
 #build and run
 run: game
@@ -28,4 +28,4 @@ game:
 
 #cleans temp folder
 clean:
-	rm -f $(TEMP)/program.o $(TEMP)/toolbox.o $(TEMP)/program.elf
+	rm -f $(TEMP)/main.o $(TEMP)/toolbox.o $(TEMP)/program.elf

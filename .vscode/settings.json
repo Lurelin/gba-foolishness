@@ -1,0 +1,9 @@
+{
+    "makefile.launchConfigurations": [
+        {
+            "cwd": "home:\\Rosalina\\Documents\\GitHub\\gba-foolishness\\build\\temp",
+            "binaryPath": "home:\\Rosalina\\Documents\\GitHub\\gba-foolishness\\build\\temp\\home:\\Rosalina\\Documents\\GitHub\\gba-foolishness\\build\\temp\\program.elf",
+            "binaryArgs": []
+        }
+    ]
+}
