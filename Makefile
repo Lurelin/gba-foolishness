@@ -17,6 +17,8 @@ run: game
 	$(MGBA) $(OUTFILE)
 #builds game
 game:
+	mkdir -p ./build/temp
+
 	$(GCCARM) -mthumb -c $(MAINFILE) -o $(TEMP)/main.o -I $(INCLUDE)
 
 	$(GCCARM) -mthumb -c $(DATAFILE) -o $(TEMP)/data.o -I $(INCLUDE)	
