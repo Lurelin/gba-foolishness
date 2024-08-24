@@ -7,7 +7,8 @@ MGBA := "C:/Program Files/mGBA/mGBA.exe"
 INCLUDE := src/include
 
 TEMP := build/temp
-SRCFILE := src/main.c
+MAINFILE := src/main.c
+DATAFILE := src/data.c
 TOOLBOX := src/toolbox.c
 OUTFILE := build/foolishness.gba
 
@@ -16,11 +17,13 @@ run: game
 	$(MGBA) $(OUTFILE)
 #builds game
 game:
-	$(GCCARM) -mthumb -c $(SRCFILE) -o $(TEMP)/main.o -I $(INCLUDE)
-	
+	$(GCCARM) -mthumb -c $(MAINFILE) -o $(TEMP)/main.o -I $(INCLUDE)
+
+	$(GCCARM) -mthumb -c $(DATAFILE) -o $(TEMP)/data.o -I $(INCLUDE)	
+
 	$(GCCARM) -mthumb -c $(TOOLBOX) -o $(TEMP)/toolbox.o -I $(INCLUDE)
 
-	$(GCCARM) -specs=gba.specs -mthumb $(TEMP)/main.o $(TEMP)/toolbox.o -o $(TEMP)/program.elf 
+	$(GCCARM) -specs=gba.specs -mthumb $(TEMP)/main.o $(TEMP)/data.o $(TEMP)/toolbox.o -o $(TEMP)/program.elf 
 
 	$(OBJCOPY) -O binary $(TEMP)/program.elf $(OUTFILE)
 
@@ -28,4 +31,4 @@ game:
 
 #cleans temp folder
 clean:
-	rm -f $(TEMP)/main.o $(TEMP)/toolbox.o $(TEMP)/program.elf
+	rm -f $(TEMP)/main.o $(TEMP)/data.o $(TEMP)/toolbox.o $(TEMP)/program.elf

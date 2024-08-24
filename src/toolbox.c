@@ -1,4 +1,4 @@
-#include "toolbox.hpp"
+#include "toolbox.h"
 void vid_vsync()
 {
     while(REG_VCOUNT >= 160);   // wait till VDraw

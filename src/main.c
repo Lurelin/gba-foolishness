@@ -1,24 +1,15 @@
 #include <stdio.h>
 #include <stdbool.h>
-#include "toolbox.hpp"
+#include "toolbox.h"
+#include "data.h"
 
 int main()
 {
     REG_DISPCNT = DCNT_MODE3 | DCNT_BG2;
-    int y = 0;
-    while (true) {
-        vid_vsync();
-        if (y < SCREEN_HEIGHT) {
-            m3_plot(12, y, 0b111110000000000);
-            if (y - 1 != -1) {
-                m3_plot(12, y - 1, 0);
-            } else {
-                m3_plot(12, 159, 0);
-            }
-            y++;
-        } else {
-            y = 0;
-        }
-    }    
-    return 0;
+    m3_plot(8, 8, 0b111110000011010);
+    m3_plot(8, 16, colour(26,0,31));
+    m3_plot(16, 8, 0b111110000000000);
+    m3_plot(16, 16, colour(0,0,31));
+
+    while(1);
 }
