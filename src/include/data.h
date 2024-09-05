@@ -1,3 +1,4 @@
 #pragma once
 #include "toolbox.h"
-extern palette gradientPalette;
+extern const palette gamePalette ALIGN4;
+extern TILE4 cursorTile;
