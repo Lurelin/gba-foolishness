@@ -15,6 +15,14 @@ typedef volatile u16 vu16;
 typedef const s16 cs16;
 typedef const u16 cu16;
 
+//signed and unsigned char typedefs
+typedef signed char s8;
+typedef unsigned char u8;
+typedef volatile s8 vs8;
+typedef volatile u8 vu8;
+typedef const s8 cs8;
+typedef const u8 cu8;
+
 #define INLINE static inline //inline functions compile by direct subsitution with function call instead of branching; inline functions reduce function overhead
 
 #define ALIGN4 __attribute__((aligned(4))) //Force word alignment.
