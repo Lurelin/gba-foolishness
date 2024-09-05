@@ -4,16 +4,15 @@
 #include "toolbox.h"
 #include "data.h"
 
-Vector2 cursorPos = {0,10};
+Vector2 cursorPos = {0,8};
 Vector2 screenPos = {0,0};
 vu16 keyInput;
 u8 cursorHold;
 u8 cursorSpeed;
 
-
 INLINE void updateCursorSprite() {
-    obj_attr_mem[0].attr0 = ATTR0_Y(8 * cursorPos.y);
-    obj_attr_mem[0].attr1 = ATTR1_X(8 * cursorPos.x);
+    obj_attr_mem[0].attr0 = (obj_attr_mem[0].attr0 & ~(ATTR0_Y_MASK)) | ATTR0_Y(16 * cursorPos.y);
+    obj_attr_mem[0].attr1 = (obj_attr_mem[0].attr1 & ~(ATTR1_X_MASK)) | ATTR1_X(16 * cursorPos.x);
 }
 
 void updateCursorPos() {
@@ -22,9 +21,9 @@ void updateCursorPos() {
         cursorHold++;
         if ((cursorHold > 15)) {
             if (!(keyInput & KEY_LEFT)  && cursorPos.x > 0)  {cursorPos.x--;}
-            if (!(keyInput & KEY_RIGHT) && cursorPos.x < 29) {cursorPos.x++;}
+            if (!(keyInput & KEY_RIGHT) && cursorPos.x < 14) {cursorPos.x++;}
             if (!(keyInput & KEY_UP)    && cursorPos.y > 0)  {cursorPos.y--;}
-            if (!(keyInput & KEY_DOWN)  && cursorPos.y < 19) {cursorPos.y++;}
+            if (!(keyInput & KEY_DOWN)  && cursorPos.y < 9) {cursorPos.y++;}
             if (cursorSpeed < 3) {
                 cursorHold = 0;
                 cursorSpeed++;
@@ -38,14 +37,17 @@ void updateCursorPos() {
     }
 }
 
+
 int main()
 {
-    REG_DISPCNT = DCNT_MODE0 | DCNT_BG0 | DCNT_OBJ;
+    REG_DISPCNT = DCNT_MODE0 | DCNT_BG0 | DCNT_OBJ | DCNT_OBJ_1D;
     REG_BG0CNT = BG_4BPP | BG_SIZE_32x32 | BG_CBB(0) | BG_SBB(8);
     obj_palette_mem[0] = gamePalette;
     
-    obj_tile4_mem[1] = cursorTile;
+    memcpy(&obj_tile4_mem[1], cursorTiles, sizeof(cursorTiles));
     obj_attr_mem[0].attr2 = ATTR2_TILE(1);
+    obj_attr_mem[0].attr1 = ATTR1_SIZE_2x2;
+    obj_attr_mem[0].attr0 = ATTR0_SQUARE;
 
     updateCursorSprite();
     
