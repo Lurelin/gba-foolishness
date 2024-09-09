@@ -108,9 +108,9 @@ typedef SCR_ENTRY SCREENBLOCK[1024]; //A screenblock is a map of references to t
 #define scrb_mem ((SCREENBLOCK*)(MEM_VRAM)) //Note that SCREENBLOCKs use the same memory as CHARBLOCKS, but are 1/8th of the size. 
 
 //SCR_ENTRY DATA
-#define SE_ID(n) (n); //Tile index
+#define SE_ID(n) n; //Tile index
 #define SE_ID_MASK 0x03FF //Tile index mask
-#define SE_PALBANK(n) ((n)<<12) //Palette index
+#define SE_PALBANK(n) (n<<12) //Palette index
 #define SE_PALBANK_MASK 0xF000 //Palette index mask
 
 #define SE_HFLIP		0x0400	//Horizontal flip
@@ -203,8 +203,3 @@ INLINE void m3_plot(int x, int y, u16 clr)
 {
     vid_mem[y*SCREEN_WIDTH+x] = clr;
 }
-
-typedef struct Vector2 {
-    char x;
-    char y;
-} Vector2;
