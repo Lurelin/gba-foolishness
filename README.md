@@ -6,6 +6,10 @@ ideas:
 - exploding kittens
 - civ port/demake
 - metroidvania, 1 hp, medieval, 
-- witch factory game(potionmaking & stuff)
+- factory game, but pipes instead of belts
 
-factory game:
+factory game button map:
+- L + A = zoom in
+- L + B = zoom out
+- R = change selection
+- Start = change menus(menus = production, tile stats, settings)
