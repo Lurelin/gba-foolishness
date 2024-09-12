@@ -143,7 +143,7 @@ void displayModeSwitch(int mode)
         break;
         case DISPMODE_8PX:
             displayMode = DISPMODE_8PX;
-            screenPos.x += cursorPos.x - 14;
+            screenPos.x += cursorPos.x - 14; //center screen around cursor
             screenPos.y += cursorPos.y - 10;
             cursorPos = (Vector2){14,10};
             obj_attr_mem[0].attr2 = (obj_attr_mem[0].attr2 & ~0x003FF) | ATTR2_TILE(1); 
@@ -151,7 +151,7 @@ void displayModeSwitch(int mode)
         break;
         case DISPMODE_16PX:
             displayMode = DISPMODE_16PX;
-            screenPos.x += cursorPos.x - 7;
+            screenPos.x += cursorPos.x - 7; //center screen around cursor
             screenPos.y += cursorPos.y - 5;
             cursorPos = (Vector2){7,5};
             obj_attr_mem[0].attr2 = (obj_attr_mem[0].attr2 & ~0x003FF) | ATTR2_TILE(2);
