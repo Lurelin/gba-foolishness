@@ -174,7 +174,7 @@ typedef struct OBJ_ATTR //Object attributes struct. Note that this is interlaced
 #define ATTR2_PALBANK(n) (n << 12) //Palette, uses obj_palette_mem
 
 //PALETTES
-#define RGB15(r, g, b) (r | g << 5 | b << 10) //One 15 bit rgb colour. BBBBBGGGGGRRRRR
+#define RGB15(r, g, b) r | g << 5 | b << 10 //One 15 bit rgb colour. BBBBBGGGGGRRRRR
 typedef struct {u16 colours[16];} ALIGN4 palette; //A single palette contains 16 colours
 #define bg_palette_mem ((palette*)(MEM_PALETTES))
 #define obj_palette_mem ((palette*)(MEM_PALETTES+0x0200))

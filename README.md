@@ -9,7 +9,8 @@ ideas:
 - factory game, but pipes instead of belts
 
 factory game button map:
-- L + A = zoom in
-- L + B = zoom out
-- R = change selection
+- R + Up = zoom in
+- R + Down = zoom out
+- R + Left = Selection++
+- R + Right = Selection--
 - Start = change menus(menus = production, tile stats, settings)
