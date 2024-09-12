@@ -9,16 +9,17 @@ typedef struct Vector2 {
     s32 y;
 } Vector2;
 
-Vector2 cursorPos = (Vector2){14,10};
-Vector2 screenPos = {0,0};
-vu16 keyInput;
-u8 cursorHold;
-u8 cursorSpeed;
 #define OBJECTMAP_WIDTH 128
 #define OBJECTMAP_HEIGHT 128
 EWRAM_DATA u8 objectMap[OBJECTMAP_WIDTH][OBJECTMAP_HEIGHT];
+
+Vector2 screenPos = {OBJECTMAP_WIDTH / 2 - 14,OBJECTMAP_HEIGHT / 2 - 10};
+Vector2 cursorPos = (Vector2){14,10};
 char displayMode;
 char selectButtonPressed;
+vu16 keyInput;
+u8 cursorHold;
+u8 cursorSpeed;
 
 INLINE void updateCursorSprite() {
     obj_attr_mem[0].attr0 = (obj_attr_mem[0].attr0 & ~(ATTR0_Y_MASK)) | ATTR0_Y((8 + displayMode * 8) * cursorPos.y);
@@ -145,7 +146,7 @@ void drawObjects() {
 
 int main()
 {
-    objectMap[127][0] = 1;
+    objectMap[64][64] = 1;
     REG_DISPCNT = DCNT_MODE0 | DCNT_BG0 | DCNT_OBJ | DCNT_OBJ_1D;
     REG_BG0CNT = BG_4BPP | BG_SIZE_32x32 | BG_CBB(0) | BG_SBB(8);
 
@@ -163,16 +164,16 @@ int main()
     
     while(1) {
         vid_vsync();
+        displayModeSwitch();
+        updateCursorPos();
+        verifyScreenPos();
+        updateCursorSprite();
         if (!(REG_KEYINPUT & KEY_A)) {
             objectMap[cursorPos.x + screenPos.x][cursorPos.y + screenPos.y] = OBJ_ID_PLACEHOLDER;
         }
         if (!(REG_KEYINPUT & KEY_B)) {
             objectMap[cursorPos.x + screenPos.x][cursorPos.y + screenPos.y] = OBJ_ID_BACKGROUND;
         }
-        updateCursorPos();
-        displayModeSwitch();
-        verifyScreenPos();
-        updateCursorSprite();
         drawObjects();
     };
 }

@@ -7,3 +7,5 @@ ideas:
 - civ port/demake
 - metroidvania, 1 hp, medieval, 
 - witch factory game(potionmaking & stuff)
+
+factory game:
