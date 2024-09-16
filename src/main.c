@@ -25,9 +25,11 @@ void initDisp() { //initialize program
     REG_BG0CNT = BG_4BPP | BG_SIZE_32x32 | BG_CBB(0) | BG_SBB(8); //init background 0
     bg_palette_mem[0] = gamePal; //set bgmem0 to main palette
     obj_palette_mem[0] = gamePal; //set objmem0 to main palette
-    memcpy(&bg_tile4_mem[0][0], backgroundTiles, sizeof(backgroundTiles)); //copy background tiles to vram
-    memcpy(&bg_tile4_mem[0][4], pipesTiles, sizeof(pipesTiles)); //copy pipes tiles to vram
-    memcpy(&obj_tile4_mem[1], cursorTiles, sizeof(cursorTiles)); //copy cursor tiles to vram
+    memcpy(&bg_tile4_mem[0][0], backgroundTiles, sizeof(backgroundTiles)); //copy tiles to vram
+    memcpy(&bg_tile4_mem[0][4], pipe_largeTiles, sizeof(pipe_largeTiles)); //copy tiles to vram
+    memcpy(&bg_tile4_mem[0][8], pipe_smallTiles, sizeof(pipe_smallTiles)); //copy tiles to vram    
+    memcpy(&obj_tile4_mem[2], cursor_largeTiles, sizeof(cursor_largeTiles)); //copy tiles to vram
+    memcpy(&obj_tile4_mem[1], cursor_smallTiles, sizeof(cursor_smallTiles)); //copy tiles to vram
     obj_attr_mem[0].attr2 = ATTR2_TILE(1);
     obj_attr_mem[0].attr1 = ATTR1_SIZE_1x1;
     obj_attr_mem[0].attr0 = ATTR0_SQUARE;
@@ -145,7 +147,7 @@ void displayModeSwitch(int mode)
             displayMode = DISPMODE_8PX;
             screenPos.x += cursorPos.x - 14; //center screen around cursor
             screenPos.y += cursorPos.y - 10;
-            cursorPos = (Vector2){14,10};
+            cursorPos = (Vector2){14,10}; //recenter cursor around screen
             obj_attr_mem[0].attr2 = (obj_attr_mem[0].attr2 & ~0x003FF) | ATTR2_TILE(1); 
             obj_attr_mem[0].attr1 = (obj_attr_mem[0].attr1 & ~0x0C000) | ATTR1_SIZE_1x1;
         break;
@@ -169,13 +171,13 @@ void doKeys() {
         if (displayMode != DISPMODE_8PX) {
             displayModeSwitch(DISPMODE_8PX);
         }
-    }
-            
+    }        
     if (!(REG_KEYINPUT & KEY_R) && !(REG_KEYINPUT & KEY_A)) { //zoom out
         displayModeSwitch(DISPMODE_1PX);
     }
+
     if (!(REG_KEYINPUT & KEY_A)) {
-        objectMap[cursorPos.x + screenPos.x][cursorPos.y + screenPos.y] = OBJ_ID_HORIZONTALPIPE;
+        objectMap[cursorPos.x + screenPos.x][cursorPos.y + screenPos.y] = OBJ_ID_VERTICALPIPE;
     }
     if (!(REG_KEYINPUT & KEY_B)) {
         objectMap[cursorPos.x + screenPos.x][cursorPos.y + screenPos.y] = OBJ_ID_BACKGROUNDTILE;

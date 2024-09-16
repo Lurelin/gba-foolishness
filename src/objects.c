@@ -23,8 +23,8 @@ void drawVerticalPipe(int X, int Y) {
     } else if (displayMode == DISPMODE_16PX) {
         scrb_mem[8][32*(Y*2)+X*2] = SE_PALBANK(0) | SE_ID(4);
         scrb_mem[8][32*(Y*2)+X*2 + 1] = SE_PALBANK(0) | SE_ID(5);
-        scrb_mem[8][32*(Y*2 + 1)+X*2] = SE_PALBANK(0) | SE_ID(9);
-        scrb_mem[8][32*(Y*2 + 1)+X*2 + 1] = SE_PALBANK(0) | SE_ID(10);
+        scrb_mem[8][32*(Y*2 + 1)+X*2] = SE_PALBANK(0) | SE_ID(6);
+        scrb_mem[8][32*(Y*2 + 1)+X*2 + 1] = SE_PALBANK(0) | SE_ID(7);
     }
 };
 void drawHorizontalPipe(int X, int Y) {
