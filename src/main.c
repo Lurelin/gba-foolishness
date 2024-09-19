@@ -15,21 +15,26 @@ typedef struct Vector2 {
 EWRAM_DATA u8 objectMap[OBJECTMAP_WIDTH][OBJECTMAP_HEIGHT]; //Map of object IDs
 
 Vector2 screenPos = {OBJECTMAP_WIDTH / 2 - 14,OBJECTMAP_HEIGHT / 2 - 10}; //Camera position on the object map
-Vector2 cursorPos = (Vector2){14,10}; //Position of cursor on the screen in 8/16 px intervals, takes effect when updatecursorsprite() is run
+Vector2 cursorPos = (Vector2){14, 10}; //Position of cursor on the screen in 8/16 px intervals, takes effect when updatecursorsprite() is run
 char displayMode = DISPMODE_8PX; //Displaymode decides whether 16px tiles, 8px tiles, or pixels are displayed
 u8 cursorHold; //tracker for length dpad keys have been held(in frames)
 u8 cursorSequenceLength;
+u8 selectedObject = OBJ_ID_HORIZONTALPIPE; //currently selected object, placed with A button
 
 void initDisp() { //initialize program
-    REG_DISPCNT = DCNT_MODE0 | DCNT_BG0 | DCNT_OBJ | DCNT_OBJ_1D; //put the gba in mode0(tiles mode), enable bg0 & object layer
-    REG_BG0CNT = BG_4BPP | BG_SIZE_32x32 | BG_CBB(0) | BG_SBB(8); //init background 0
-    bg_palette_mem[0] = gamePal; //set bgmem0 to main palette
-    obj_palette_mem[0] = gamePal; //set objmem0 to main palette
-    memcpy(&bg_tile4_mem[0][0], backgroundTiles, sizeof(backgroundTiles)); //copy tiles to vram
-    memcpy(&bg_tile4_mem[0][4], pipe_largeTiles, sizeof(pipe_largeTiles)); //copy tiles to vram
-    memcpy(&bg_tile4_mem[0][8], pipe_smallTiles, sizeof(pipe_smallTiles)); //copy tiles to vram    
-    memcpy(&obj_tile4_mem[2], cursor_largeTiles, sizeof(cursor_largeTiles)); //copy tiles to vram
-    memcpy(&obj_tile4_mem[1], cursor_smallTiles, sizeof(cursor_smallTiles)); //copy tiles to vram
+    REG_DISPCNT = DCNT_MODE0 | DCNT_BG0 | DCNT_BG1 | DCNT_OBJ | DCNT_OBJ_1D; //put the gba in mode0(tiles mode), enable bg0 & object layer
+    REG_BG0CNT = BG_4BPP | BG_SIZE_32x32 | BG_CBB(0) | BG_SBB(24) | BG_PRIO(3); //init background 0(factory)
+    REG_BG1CNT = BG_4BPP | BG_SIZE_32x32 | BG_CBB(1) | BG_SBB(25) | BG_PRIO(1); //init background 1(menus)
+    bg_palette_mem[0] = palette_game; //set bgmem0 to main palette
+    obj_palette_mem[0] = palette_game; //set objmem0 to main palette
+    memcpy(&bg_tile4_mem[0][0], tiles_background, sizeof(tiles_background)); //copy tiles to vram
+    memcpy(&bg_tile4_mem[0][1], tiles_pipe_vertical_small, sizeof(tiles_pipe_vertical_small)); //copy tiles to vram    
+    memcpy(&bg_tile4_mem[0][2], tiles_pipe_vertical_large, sizeof(tiles_pipe_vertical_large)); //copy tiles to vram
+    memcpy(&bg_tile4_mem[0][6], tiles_pipe_horizontal_small, sizeof(tiles_pipe_horizontal_small)); //copy tiles to vram    
+    memcpy(&bg_tile4_mem[0][7], tiles_pipe_horizontal_large, sizeof(tiles_pipe_horizontal_large)); //copy tiles to vram
+    memcpy(&obj_tile4_mem[1], tiles_cursor_small, sizeof(tiles_cursor_small)); //copy tiles to vram
+    memcpy(&obj_tile4_mem[2], tiles_cursor_large, sizeof(tiles_cursor_large)); //copy tiles to vram
+    memcpy(&bg_tile4_mem[1][1], tiles_popup_placeholder, sizeof(tiles_popup_placeholder)); //copy tiles to vram
     obj_attr_mem[0].attr2 = ATTR2_TILE(1);
     obj_attr_mem[0].attr1 = ATTR1_SIZE_1x1;
     obj_attr_mem[0].attr0 = ATTR0_SQUARE;
@@ -46,18 +51,40 @@ void updateCursorSprite() { //Changes cursor position in vram to match cursorPos
     }
 }
 
+void drawPopup(Vector2 pos, Vector2 size) {
+    memset(scrb_mem[25], 0, sizeof(SCREENBLOCK)); //fill vram with 0s 
+    if (pos.x > 0 && pos.y > 0) {
+        for (int x = 0; x < size.x; x++) {
+            for (int y = 0; y < size.y; y++) {
+                scrb_mem[25][(pos.y+y) * 32 + (pos.x+x)] = SE_ID(3);
+            }
+        }
+        for (int x = 0; x < size.x; x++) {
+            scrb_mem[25][(pos.y - 1) * 32 + (pos.x+x)] = SE_VFLIP | SE_ID(1);
+        }
+        for (int x = 0; x < size.x; x++) {
+            scrb_mem[25][(pos.y + size.y) * 32 + (pos.x+x)] = SE_ID(1);
+        }
+        for (int y = 0; y < size.y; y++) {
+            scrb_mem[25][(pos.y+y) * 32 + (pos.x - 1)] = SE_HFLIP | SE_ID(2);
+        }
+        for (int y = 0; y < size.y; y++) {
+            scrb_mem[25][(pos.y+y) * 32 + (pos.x + size.x)] = SE_ID(2);
+        }
+    }
+}
 void drawObjectTiles() {
     if (displayMode == DISPMODE_8PX) {
         for (int objX = 0; objX < 30; objX++) {
             for (int objY = 0; objY < 20; objY++) {
-                drawTile(objectMap[objX + screenPos.x][objY + screenPos.y], objX, objY);
+                drawTile(objectMap[objX + screenPos.x][objY + screenPos.y], objX, objY, 24, DISPMODE_8PX);
             }
         }
     }
     if (displayMode == DISPMODE_16PX) {
         for (int objX = 0; objX < 15; objX++) {
             for (int objY = 0; objY < 10; objY++) {
-                drawTile(objectMap[objX + screenPos.x][objY + screenPos.y], objX, objY);
+                drawTile(objectMap[objX + screenPos.x][objY + screenPos.y], objX, objY, 24, DISPMODE_16PX);
             }
         }
     }
@@ -91,7 +118,7 @@ void updateCursorPos() { //Update cursor & screen position
                 }
             }
             if (!(keyInput & KEY_UP))  {
-                if (cursorPos.y > 0) { 
+                if (cursorPos.y > 0) { //reserves the top two rows of tiles 
                     cursorPos.y--;
                 } else {
                     screenPos.y--;
@@ -147,7 +174,7 @@ void displayModeSwitch(int mode)
             displayMode = DISPMODE_8PX;
             screenPos.x += cursorPos.x - 14; //center screen around cursor
             screenPos.y += cursorPos.y - 10;
-            cursorPos = (Vector2){14,10}; //recenter cursor around screen
+            cursorPos = (Vector2){14, 10}; //recenter cursor around screen
             obj_attr_mem[0].attr2 = (obj_attr_mem[0].attr2 & ~0x003FF) | ATTR2_TILE(1); 
             obj_attr_mem[0].attr1 = (obj_attr_mem[0].attr1 & ~0x0C000) | ATTR1_SIZE_1x1;
         break;
@@ -171,9 +198,16 @@ void doKeys() {
         if (displayMode != DISPMODE_8PX) {
             displayModeSwitch(DISPMODE_8PX);
         }
-    }        
-    if (!(REG_KEYINPUT & KEY_R) && !(REG_KEYINPUT & KEY_A)) { //zoom out
+    }  
+    if (!(REG_KEYINPUT & KEY_R) && !(REG_KEYINPUT & KEY_A)) { //pixel mode
         displayModeSwitch(DISPMODE_1PX);
+    }
+
+    if (!(REG_KEYINPUT & KEY_R) && !(REG_KEYINPUT & KEY_DOWN)) {
+        selectedObject--;
+    }        
+    if (!(REG_KEYINPUT & KEY_R) && !(REG_KEYINPUT & KEY_UP)) {
+        selectedObject++;
     }
 
     if (!(REG_KEYINPUT & KEY_A)) {
@@ -200,6 +234,9 @@ int main()
             updateCursorSprite();
             doKeys();
             drawObjectTiles();
+            if (!(KEY_DOWN & KEY_L)) {
+                drawPopup((Vector2){7,7}, (Vector2){8, 4});
+            }
         } else {
             if (!(REG_KEYINPUT & KEY_A) && (REG_KEYINPUT & KEY_R)) {
                 memset(vid_mem, 0, 0x17FFF); //fill vram with 0 to clear pixels set 

@@ -79,6 +79,8 @@ typedef const u8 cu8;
 //BGCNT BITS
 #define BG_4BPP				 0	//4bpp (16 color) bg (no effect on affine bg)
 #define BG_8BPP	0x0080	//8bpp (256 color) bg (no effect on affine bg)
+#define BG_PRIO(n) (n << 0)      //Background priority, 3-0, 0 is highest
+#define BG_PRIO_MASK 0x0003
 #define BG_CBB(n) (n << 2)      //Dictates which charblock(block of tile data) is used for the background
 #define BG_CBB_MASK 0x000C
 #define BG_SBB(n) (n << 8)      //Dictates which screenblock(map of tiles) is used for the background
