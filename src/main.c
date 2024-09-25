@@ -66,11 +66,15 @@ void drawPopup(Vector2 pos, Vector2 size) {
             scrb_mem[25][(pos.y + size.y) * 32 + (pos.x+x)] = SE_ID(1);
         }
         for (int y = 0; y < size.y; y++) {
-            scrb_mem[25][(pos.y+y) * 32 + (pos.x - 1)] = SE_HFLIP | SE_ID(2);
+            scrb_mem[25][(pos.y + y) * 32 + (pos.x - 1)] = SE_HFLIP | SE_ID(2);
         }
         for (int y = 0; y < size.y; y++) {
-            scrb_mem[25][(pos.y+y) * 32 + (pos.x + size.x)] = SE_ID(2);
+            scrb_mem[25][(pos.y + y) * 32 + (pos.x + size.x)] = SE_ID(2);
         }
+        scrb_mem[25][(pos.y - 1) * 32 + (pos.x - 1)] = SE_ID(4);
+        scrb_mem[25][(pos.y - 1) * 32 + (pos.x + size.x)] = SE_HFLIP | SE_ID(4);
+        scrb_mem[25][(pos.y + size.y) * 32 + (pos.x - 1)] = SE_VFLIP | SE_ID(4);
+        scrb_mem[25][(pos.y + size.y) * 32 + (pos.x + size.x)] = SE_HFLIP | SE_VFLIP | SE_ID(4);
     }
 }
 void drawObjectTiles() {
