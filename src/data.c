@@ -86,7 +86,7 @@ cu32 tiles_font[376] ALIGN4 = { //47
 	0x11111111,0x11111411,0x11111441,0x11111414,0x11111411,0x11111411,0x11111411,0x11144444, //1
 	0x11111111,0x11114441,0x11141114,0x11114111,0x11111411,0x11111141,0x11111114,0x11144444, //2
 	0x11111111,0x11114444,0x11141111,0x11141111,0x11114441,0x11141111,0x11141111,0x11114444, //3
-	0x11111111,0x11111411,0x11111441,0x11111414,0x11144444,0x11111411,0x11111411,0x11111411, //4
+	0x11111111,0x11141141,0x11141141,0x11141141,0x11444441,0x11141111,0x11141111,0x11141111, //4
 	0x11111111,0x11444441,0x11111141,0x11111141,0x11144441,0x11411111,0x11411111,0x11144441, //5
 	0x11111111,0x11144111,0x11111411,0x11111141,0x11144441,0x11411141,0x11411141,0x11144411, //6
 	0x11111111,0x11444441,0x11411111,0x11141111,0x11114111,0x11111411,0x11111411,0x11111411, //7
@@ -109,3 +109,49 @@ void loadData() {
     memcpy(&obj_tile4_mem[2], tiles_cursor_large, sizeof(tiles_cursor_large));
 }
 
+int charToTileIndex(u8 charIN) {
+	if (charIN >= 'A' && charIN <= 'Z') {
+		int difference = charIN - 'A';
+		return UI_FONT_START + 1 + difference; 
+	} else if (charIN >= '0' && charIN <= '9') {
+		int difference = charIN - '0';
+		return UI_FONT_START + 37 + difference; 
+	} else {
+		switch (charIN) {
+			case ' ':
+				return UI_FONT_START;
+				break;
+			case '.': 
+				return UI_FONT_START + 27;
+				break;
+			case '?':
+				return UI_FONT_START + 28;
+				break;
+			case '!':
+				return UI_FONT_START + 29;
+				break;
+			case '=':
+				return UI_FONT_START + 30;
+				break;
+			case '-':
+				return UI_FONT_START + 31;
+				break;
+			case '+':
+				return UI_FONT_START + 32;
+				break;
+			case '*':
+				return UI_FONT_START + 33;
+				break;
+			case '\'':
+				return UI_FONT_START + 34;
+				break;
+			case ',':
+				return UI_FONT_START + 35;
+				break;
+			case ':':
+				return UI_FONT_START + 36;
+				break;
+		}
+	}
+
+}

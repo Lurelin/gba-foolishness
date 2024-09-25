@@ -32,3 +32,4 @@ extern cu32 tiles_pipe_horizontal_small[8] ALIGN4;
 extern cu32 tiles_popup_background[32] ALIGN4;
 
 extern void loadData();
+extern int charToTileIndex(u8 charIN);

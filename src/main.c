@@ -1,7 +1,9 @@
 #include <string.h>
 #include <stdlib.h>
+#include <math.h>
 #include "toolbox.h"
 #include "data.h"
+
 
 //Vector2 struct, usually used to represent 2d position
 typedef struct Vector2 {
@@ -37,7 +39,7 @@ cu8 objectIDData[3][5] ALIGN4 = {
 };
 
 void initDisp() { //initialize program
-    REG_DISPCNT = DCNT_MODE0 | DCNT_BG0 | DCNT_BG1 | DCNT_OBJ | DCNT_OBJ_1D; //put the gba in mode0(tiles mode), enable bg0 & object layer
+    REG_DISPCNT = DCNT_MODE0 /*| DCNT_BG0*/ | DCNT_BG1 | DCNT_OBJ | DCNT_OBJ_1D; //put the gba in mode0(tiles mode), enable bg0 & object layer
     REG_BG0CNT = BG_4BPP | BG_SIZE_32x32 | BG_CBB(BLOCK_TILES) | BG_SBB(24) | BG_PRIO(3); //init background 0(factory)
     REG_BG1CNT = BG_4BPP | BG_SIZE_32x32 | BG_CBB(BLOCK_UI) | BG_SBB(25) | BG_PRIO(1); //init background 1(menus)
     bg_palette_mem[0] = palette_game; //set bgmem0 to main palette
@@ -65,33 +67,44 @@ void drawBar() {
     }
 }
 
-void drawPopup(Vector2 pos, Vector2 size) {
-    if (pos.x > 0 && pos.y > 1) {
-        for (int x = 0; x < size.x; x++) {
-            for (int y = 0; y < size.y; y++) {
-                scrb_mem[25][(pos.y+y) * 32 + (pos.x+x)] = SE_ID(UI_INDEX_FILL);
+void drawPopup(Vector2 textBoxPos, Vector2 textBoxSize, char* msgPtr, int msgLen) {
+    Vector2 trueSize = (Vector2){textBoxSize.x + 2, textBoxSize.y + 2}; //size of textbox AND border
+    Vector2 truePos = (Vector2){textBoxPos.x - 1, textBoxPos.y - 1}; //position of textbox + border
+    u16 popuparray[trueSize.x][trueSize.y] ALIGN4;
+    memset(*popuparray, UI_INDEX_FILL, sizeof(popuparray)); //fill with blank tiles
+
+    if (msgLen > textBoxSize.x * textBoxSize.y) msgLen = textBoxSize.x * textBoxSize.y; //crop message to textbox size
+    for (int i = 0; i < msgLen - 1; i++) {
+        popuparray[i % textBoxSize.x + 1][(int)floor(i / textBoxSize.x) + 1] = charToTileIndex(msgPtr[i]);
+    }
+
+    //draw edges
+    for (int x = 1; x < trueSize.x - 1; x++) {
+        popuparray[x][0] = SE_VFLIP | UI_INDEX_LINE_H;
+        popuparray[x][trueSize.y - 1] = UI_INDEX_LINE_H;
+    }
+    for (int y = 1; y < trueSize.y - 1; y++) {
+        popuparray[0][y] = SE_HFLIP | UI_INDEX_LINE_V;
+        popuparray[trueSize.x - 1][y] = UI_INDEX_LINE_V;
+    }
+    popuparray[trueSize.x - 1][trueSize.y - 1] = SE_HFLIP | SE_VFLIP | UI_INDEX_CORNER;
+    popuparray[0][trueSize.y - 1] = SE_VFLIP | UI_INDEX_CORNER;
+    popuparray[0][0] = UI_INDEX_CORNER;
+    popuparray[trueSize.x - 1][0] = SE_HFLIP | UI_INDEX_CORNER;
+
+    //render to screen
+    for (int x = 0; x < trueSize.x; x++) {
+        if (x + truePos.x >= 0 && x + truePos.x < 32) {
+            for (int y = 0; y < trueSize.y; y++) {
+                if (y + truePos.y >= 0 && y + truePos.y < 32) {
+                    scrb_mem[25][(y + truePos.y)*32 + (x + truePos.x)] = popuparray[x][y];
+                }
             }
         }
-        for (int x = 0; x < size.x; x++) {
-            scrb_mem[25][(pos.y - 1) * 32 + (pos.x+x)] = SE_VFLIP | SE_ID(UI_INDEX_LINE_H);
-        }
-        for (int x = 0; x < size.x; x++) {
-            scrb_mem[25][(pos.y + size.y) * 32 + (pos.x+x)] = SE_ID(UI_INDEX_LINE_H);
-        }
-        for (int y = 0; y < size.y; y++) {
-            scrb_mem[25][(pos.y + y) * 32 + (pos.x - 1)] = SE_HFLIP | SE_ID(UI_INDEX_LINE_V);
-        }
-        for (int y = 0; y < size.y; y++) {
-            scrb_mem[25][(pos.y + y) * 32 + (pos.x + size.x)] = SE_ID(UI_INDEX_LINE_V);
-        }
-        scrb_mem[25][(pos.y - 1) * 32 + (pos.x - 1)] = SE_ID(UI_INDEX_CORNER);
-        scrb_mem[25][(pos.y - 1) * 32 + (pos.x + size.x)] = SE_HFLIP | SE_ID(UI_INDEX_CORNER);
-        scrb_mem[25][(pos.y + size.y) * 32 + (pos.x - 1)] = SE_VFLIP | SE_ID(UI_INDEX_CORNER);
-        scrb_mem[25][(pos.y + size.y) * 32 + (pos.x + size.x)] = SE_HFLIP | SE_VFLIP | SE_ID(UI_INDEX_CORNER);
     }
 }
 
-void drawObjectTiles() {
+void drawObjectTiles() { //Draws objects to screenblock
     if (displayMode == DISPMODE_8PX) {
         for (int objX = 0; objX < 30; objX++) {
             for (int objY = 0; objY < 20; objY++) {
@@ -257,7 +270,8 @@ int main()
             verifyScreenPos();
             updateCursorSprite();
             doKeys();
-            drawPopup((Vector2){cursorPos.x - 3, cursorPos.y - 4}, (Vector2){7, 4});
+            char stringTest[] = " ABCDEFGHIJKLMNOPQRSTUVWXYZ.?!=-+*',:0123456789";
+            drawPopup((Vector2){cursorPos.x - 5, cursorPos.y - 5}, (Vector2){11, 5}, stringTest, sizeof(stringTest));
             drawObjectTiles();
             doDisplayModeSwitchKeys();
         } else {
