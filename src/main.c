@@ -39,7 +39,7 @@ cu8 objectIDData[3][5] ALIGN4 = {
 };
 
 void initDisp() { //initialize program
-    REG_DISPCNT = DCNT_MODE0 /*| DCNT_BG0*/ | DCNT_BG1 | DCNT_OBJ | DCNT_OBJ_1D; //put the gba in mode0(tiles mode), enable bg0 & object layer
+    REG_DISPCNT = DCNT_MODE0 | DCNT_BG0 | DCNT_BG1 | DCNT_OBJ | DCNT_OBJ_1D; //put the gba in mode0(tiles mode), enable bg0 & object layer
     REG_BG0CNT = BG_4BPP | BG_SIZE_32x32 | BG_CBB(BLOCK_TILES) | BG_SBB(24) | BG_PRIO(3); //init background 0(factory)
     REG_BG1CNT = BG_4BPP | BG_SIZE_32x32 | BG_CBB(BLOCK_UI) | BG_SBB(25) | BG_PRIO(1); //init background 1(menus)
     bg_palette_mem[0] = palette_game; //set bgmem0 to main palette
@@ -72,7 +72,6 @@ void drawPopup(Vector2 textBoxPos, Vector2 textBoxSize, char* msgPtr, int msgLen
     Vector2 truePos = (Vector2){textBoxPos.x - 1, textBoxPos.y - 1}; //position of textbox + border
     u16 popuparray[trueSize.x][trueSize.y] ALIGN4;
     memset(*popuparray, UI_INDEX_FILL, sizeof(popuparray)); //fill with blank tiles
-
     if (msgLen > textBoxSize.x * textBoxSize.y) msgLen = textBoxSize.x * textBoxSize.y; //crop message to textbox size
     for (int i = 0; i < msgLen - 1; i++) {
         popuparray[i % textBoxSize.x + 1][(int)floor(i / textBoxSize.x) + 1] = charToTileIndex(msgPtr[i]);
@@ -263,15 +262,15 @@ int main()
     updateCursorSprite();
     
     while(1) {
-        vid_vsync();
         if (displayMode != 0) {
+            vid_vsync();
             memset(scrb_mem[25], 0, sizeof(SCREENBLOCK)); //fill ui vram with 0s 
+            char stringTest[] = " ABCDEFGHIJKLMNOPQRSTUVWXYZ.?!=-+*',:0123456789";
+            drawPopup((Vector2){cursorPos.x - 5, cursorPos.y - 5}, (Vector2){11, 5}, stringTest, sizeof(stringTest));
             updateCursorPos();
             verifyScreenPos();
             updateCursorSprite();
             doKeys();
-            char stringTest[] = " ABCDEFGHIJKLMNOPQRSTUVWXYZ.?!=-+*',:0123456789";
-            drawPopup((Vector2){cursorPos.x - 5, cursorPos.y - 5}, (Vector2){11, 5}, stringTest, sizeof(stringTest));
             drawObjectTiles();
             doDisplayModeSwitchKeys();
         } else {
