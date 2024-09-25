@@ -9,7 +9,6 @@ INCLUDE := src/include
 TEMP := build/temp
 MAINFILE := src/main.c
 DATAFILE := src/data.c
-OBJECTFILE := src/objects.c
 TOOLBOX := src/toolbox.c
 OUTFILE := build/foolishness.gba
 
@@ -24,11 +23,9 @@ game:
 
 	$(GCCARM) -mthumb -c $(DATAFILE) -o $(TEMP)/data.o -I $(INCLUDE)
 
-	$(GCCARM) -mthumb -c $(OBJECTFILE) -o $(TEMP)/objects.o -I $(INCLUDE)	
-
 	$(GCCARM) -mthumb -c $(TOOLBOX) -o $(TEMP)/toolbox.o -I $(INCLUDE)
 
-	$(GCCARM) -specs=gba.specs -mthumb $(TEMP)/main.o $(TEMP)/data.o $(TEMP)/objects.o $(TEMP)/toolbox.o -o $(TEMP)/program.elf 
+	$(GCCARM) -specs=gba.specs -mthumb $(TEMP)/main.o $(TEMP)/data.o $(TEMP)/toolbox.o -o $(TEMP)/program.elf 
 
 	$(OBJCOPY) -O binary $(TEMP)/program.elf $(OUTFILE)
 

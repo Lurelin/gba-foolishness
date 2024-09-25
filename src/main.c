@@ -2,7 +2,6 @@
 #include <stdlib.h>
 #include "toolbox.h"
 #include "data.h"
-#include "objects.h"
 
 //Vector2 struct, usually used to represent 2d position
 typedef struct Vector2 {
@@ -13,28 +12,37 @@ typedef struct Vector2 {
 #define OBJECTMAP_WIDTH 128
 #define OBJECTMAP_HEIGHT 128
 EWRAM_DATA u8 objectMap[OBJECTMAP_WIDTH][OBJECTMAP_HEIGHT]; //Map of object IDs
+enum OBJECTS {OBJ_ID_BACKGROUNDTILE = 0, OBJ_ID_VERTICALPIPE = 1, OBJ_ID_HORIZONTALPIPE = 2}; //Object IDs
+
+enum DISP_MODE {DISPMODE_1PX = 0, DISPMODE_8PX = 1, DISPMODE_16PX = 2}; //Display mode options
+
+char displayMode = DISPMODE_8PX; //Displaymode decides whether 16px tiles, 8px tiles, or pixels are displayed
+cu16 objectColours[256] ALIGN4 = { //Colours for dispmode_1px
+    RGB15(5,5,5), //Background
+    RGB15(27,20,17), //Pipe (Vertical)
+    RGB15(27,20,17)  //Pipe (Horizontal)
+};
 
 Vector2 screenPos = {OBJECTMAP_WIDTH / 2 - 14,OBJECTMAP_HEIGHT / 2 - 10}; //Camera position on the object map
 Vector2 cursorPos = (Vector2){14, 10}; //Position of cursor on the screen in 8/16 px intervals, takes effect when updatecursorsprite() is run
-char displayMode = DISPMODE_8PX; //Displaymode decides whether 16px tiles, 8px tiles, or pixels are displayed
 u8 cursorHold; //tracker for length dpad keys have been held(in frames)
 u8 cursorSequenceLength;
 u8 selectedObject = OBJ_ID_HORIZONTALPIPE; //currently selected object, placed with A button
 
+cu8 objectIDData[3][5] ALIGN4 = {
+    //SmallTile, BigTileTopLeft, BigTileTopRight, BigTileBottomLeft, BigTileBottomRight
+    {INDEX_BG, INDEX_BG, INDEX_BG, INDEX_BG, INDEX_BG}, //OBJ_ID_BACKGROUNDTILE
+    {INDEX_PIPE_V_S, INDEX_PIPE_V_L, INDEX_PIPE_V_L + 1, INDEX_PIPE_V_L + 2, INDEX_PIPE_V_L + 3}, //OBJ_ID_VERTICALPIPE
+    {INDEX_PIPE_H_S, INDEX_PIPE_H_L, INDEX_PIPE_H_L + 1, INDEX_PIPE_H_L + 2, INDEX_PIPE_H_L + 3}, //OBJ_ID_HORIZONTALPIPE
+};
+
 void initDisp() { //initialize program
     REG_DISPCNT = DCNT_MODE0 | DCNT_BG0 | DCNT_BG1 | DCNT_OBJ | DCNT_OBJ_1D; //put the gba in mode0(tiles mode), enable bg0 & object layer
-    REG_BG0CNT = BG_4BPP | BG_SIZE_32x32 | BG_CBB(0) | BG_SBB(24) | BG_PRIO(3); //init background 0(factory)
-    REG_BG1CNT = BG_4BPP | BG_SIZE_32x32 | BG_CBB(1) | BG_SBB(25) | BG_PRIO(1); //init background 1(menus)
+    REG_BG0CNT = BG_4BPP | BG_SIZE_32x32 | BG_CBB(BLOCK_TILES) | BG_SBB(24) | BG_PRIO(3); //init background 0(factory)
+    REG_BG1CNT = BG_4BPP | BG_SIZE_32x32 | BG_CBB(BLOCK_UI) | BG_SBB(25) | BG_PRIO(1); //init background 1(menus)
     bg_palette_mem[0] = palette_game; //set bgmem0 to main palette
     obj_palette_mem[0] = palette_game; //set objmem0 to main palette
-    memcpy(&bg_tile4_mem[0][0], tiles_background, sizeof(tiles_background)); //copy tiles to vram
-    memcpy(&bg_tile4_mem[0][1], tiles_pipe_vertical_small, sizeof(tiles_pipe_vertical_small)); //copy tiles to vram    
-    memcpy(&bg_tile4_mem[0][2], tiles_pipe_vertical_large, sizeof(tiles_pipe_vertical_large)); //copy tiles to vram
-    memcpy(&bg_tile4_mem[0][6], tiles_pipe_horizontal_small, sizeof(tiles_pipe_horizontal_small)); //copy tiles to vram    
-    memcpy(&bg_tile4_mem[0][7], tiles_pipe_horizontal_large, sizeof(tiles_pipe_horizontal_large)); //copy tiles to vram
-    memcpy(&obj_tile4_mem[1], tiles_cursor_small, sizeof(tiles_cursor_small)); //copy tiles to vram
-    memcpy(&obj_tile4_mem[2], tiles_cursor_large, sizeof(tiles_cursor_large)); //copy tiles to vram
-    memcpy(&bg_tile4_mem[1][1], tiles_popup_placeholder, sizeof(tiles_popup_placeholder)); //copy tiles to vram
+    loadData();
     obj_attr_mem[0].attr2 = ATTR2_TILE(1);
     obj_attr_mem[0].attr1 = ATTR1_SIZE_1x1;
     obj_attr_mem[0].attr0 = ATTR0_SQUARE;
@@ -51,44 +59,53 @@ void updateCursorSprite() { //Changes cursor position in vram to match cursorPos
     }
 }
 
+void drawBar() { 
+    if (cursorPos.y != 0) {
+
+    }
+}
+
 void drawPopup(Vector2 pos, Vector2 size) {
-    memset(scrb_mem[25], 0, sizeof(SCREENBLOCK)); //fill vram with 0s 
-    if (pos.x > 0 && pos.y > 0) {
+    if (pos.x > 0 && pos.y > 1) {
         for (int x = 0; x < size.x; x++) {
             for (int y = 0; y < size.y; y++) {
-                scrb_mem[25][(pos.y+y) * 32 + (pos.x+x)] = SE_ID(3);
+                scrb_mem[25][(pos.y+y) * 32 + (pos.x+x)] = SE_ID(UI_INDEX_FILL);
             }
         }
         for (int x = 0; x < size.x; x++) {
-            scrb_mem[25][(pos.y - 1) * 32 + (pos.x+x)] = SE_VFLIP | SE_ID(1);
+            scrb_mem[25][(pos.y - 1) * 32 + (pos.x+x)] = SE_VFLIP | SE_ID(UI_INDEX_LINE_H);
         }
         for (int x = 0; x < size.x; x++) {
-            scrb_mem[25][(pos.y + size.y) * 32 + (pos.x+x)] = SE_ID(1);
+            scrb_mem[25][(pos.y + size.y) * 32 + (pos.x+x)] = SE_ID(UI_INDEX_LINE_H);
         }
         for (int y = 0; y < size.y; y++) {
-            scrb_mem[25][(pos.y + y) * 32 + (pos.x - 1)] = SE_HFLIP | SE_ID(2);
+            scrb_mem[25][(pos.y + y) * 32 + (pos.x - 1)] = SE_HFLIP | SE_ID(UI_INDEX_LINE_V);
         }
         for (int y = 0; y < size.y; y++) {
-            scrb_mem[25][(pos.y + y) * 32 + (pos.x + size.x)] = SE_ID(2);
+            scrb_mem[25][(pos.y + y) * 32 + (pos.x + size.x)] = SE_ID(UI_INDEX_LINE_V);
         }
-        scrb_mem[25][(pos.y - 1) * 32 + (pos.x - 1)] = SE_ID(4);
-        scrb_mem[25][(pos.y - 1) * 32 + (pos.x + size.x)] = SE_HFLIP | SE_ID(4);
-        scrb_mem[25][(pos.y + size.y) * 32 + (pos.x - 1)] = SE_VFLIP | SE_ID(4);
-        scrb_mem[25][(pos.y + size.y) * 32 + (pos.x + size.x)] = SE_HFLIP | SE_VFLIP | SE_ID(4);
+        scrb_mem[25][(pos.y - 1) * 32 + (pos.x - 1)] = SE_ID(UI_INDEX_CORNER);
+        scrb_mem[25][(pos.y - 1) * 32 + (pos.x + size.x)] = SE_HFLIP | SE_ID(UI_INDEX_CORNER);
+        scrb_mem[25][(pos.y + size.y) * 32 + (pos.x - 1)] = SE_VFLIP | SE_ID(UI_INDEX_CORNER);
+        scrb_mem[25][(pos.y + size.y) * 32 + (pos.x + size.x)] = SE_HFLIP | SE_VFLIP | SE_ID(UI_INDEX_CORNER);
     }
 }
+
 void drawObjectTiles() {
     if (displayMode == DISPMODE_8PX) {
         for (int objX = 0; objX < 30; objX++) {
             for (int objY = 0; objY < 20; objY++) {
-                drawTile(objectMap[objX + screenPos.x][objY + screenPos.y], objX, objY, 24, DISPMODE_8PX);
+                scrb_mem[24][32*(objY)+objX] = objectIDData[objectMap[objX + screenPos.x][objY + screenPos.y]][0];
             }
         }
     }
     if (displayMode == DISPMODE_16PX) {
         for (int objX = 0; objX < 15; objX++) {
             for (int objY = 0; objY < 10; objY++) {
-                drawTile(objectMap[objX + screenPos.x][objY + screenPos.y], objX, objY, 24, DISPMODE_16PX);
+                scrb_mem[24][32*(objY*2)+objX*2] = objectIDData[objectMap[objX + screenPos.x][objY + screenPos.y]][1];
+                scrb_mem[24][32*(objY*2)+objX*2 + 1] = objectIDData[objectMap[objX + screenPos.x][objY + screenPos.y]][2];
+                scrb_mem[24][32*(objY*2 + 1)+objX*2] = objectIDData[objectMap[objX + screenPos.x][objY + screenPos.y]][3];
+                scrb_mem[24][32*(objY*2 + 1)+objX*2 + 1] = objectIDData[objectMap[objX + screenPos.x][objY + screenPos.y]][4];
             }
         }
     }
@@ -193,20 +210,6 @@ void displayModeSwitch(int mode)
     }
 }
 void doKeys() {
-    if (!(REG_KEYINPUT & KEY_R) && !(REG_KEYINPUT & KEY_RIGHT)) { //zoom in
-        if (displayMode != DISPMODE_16PX) {
-            displayModeSwitch(DISPMODE_16PX);
-        }
-    }
-    if (!(REG_KEYINPUT & KEY_R) && !(REG_KEYINPUT & KEY_LEFT)) { //zoom out
-        if (displayMode != DISPMODE_8PX) {
-            displayModeSwitch(DISPMODE_8PX);
-        }
-    }  
-    if (!(REG_KEYINPUT & KEY_R) && !(REG_KEYINPUT & KEY_A)) { //pixel mode
-        displayModeSwitch(DISPMODE_1PX);
-    }
-
     if (!(REG_KEYINPUT & KEY_R) && !(REG_KEYINPUT & KEY_DOWN)) {
         selectedObject--;
     }        
@@ -222,6 +225,22 @@ void doKeys() {
     }
 }
 
+void doDisplayModeSwitchKeys() {
+    if (!(REG_KEYINPUT & KEY_R) && !(REG_KEYINPUT & KEY_RIGHT)) { //zoom in
+        if (displayMode != DISPMODE_16PX) {
+            displayModeSwitch(DISPMODE_16PX);
+        }
+    }
+    if (!(REG_KEYINPUT & KEY_R) && !(REG_KEYINPUT & KEY_LEFT)) { //zoom out
+        if (displayMode != DISPMODE_8PX) {
+            displayModeSwitch(DISPMODE_8PX);
+        }
+    }  
+    if (!(REG_KEYINPUT & KEY_R) && !(REG_KEYINPUT & KEY_A)) { //pixel mode
+        displayModeSwitch(DISPMODE_1PX);
+    }
+
+}
 int main()
 {
     objectMap[64][64] = OBJ_ID_HORIZONTALPIPE;
@@ -233,14 +252,14 @@ int main()
     while(1) {
         vid_vsync();
         if (displayMode != 0) {
+            memset(scrb_mem[25], 0, sizeof(SCREENBLOCK)); //fill ui vram with 0s 
             updateCursorPos();
             verifyScreenPos();
             updateCursorSprite();
             doKeys();
+            drawPopup((Vector2){cursorPos.x - 3, cursorPos.y - 4}, (Vector2){7, 4});
             drawObjectTiles();
-            if (!(KEY_DOWN & KEY_L)) {
-                drawPopup((Vector2){7,7}, (Vector2){8, 4});
-            }
+            doDisplayModeSwitchKeys();
         } else {
             if (!(REG_KEYINPUT & KEY_A) && (REG_KEYINPUT & KEY_R)) {
                 memset(vid_mem, 0, 0x17FFF); //fill vram with 0 to clear pixels set 
