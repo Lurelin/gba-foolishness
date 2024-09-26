@@ -197,7 +197,10 @@ typedef struct {u16 colours[16];} ALIGN4 palette; //A single palette contains 16
 #define KEY_L 0x0200
 
 //Vsyncing function
-void vid_vsync();
+INLINE void vid_vsync() {
+	while(REG_VCOUNT >= 160);   // wait till VDraw
+    while(REG_VCOUNT < 160);    // wait till VBlank
+};
 
 #define vid_mem ((u16*)MEM_VRAM)
 //Plotting function for mode 3
@@ -205,3 +208,9 @@ INLINE void m3_plot(int x, int y, u16 clr)
 {
     vid_mem[y*SCREEN_WIDTH+x] = clr;
 }
+
+//Vector2 struct, usually used to represent 2d position
+typedef struct Vector2 {
+    s32 x;
+    s32 y;
+} Vector2;
