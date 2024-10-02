@@ -4,14 +4,15 @@ GCCARM := $(DEVKITPRO)/devkitARM/bin/arm-none-eabi-gcc.exe
 GBAFIX := $(DEVKITPRO)/tools/bin/gbafix.exe
 OBJCOPY := $(DEVKITPRO)/devkitARM/bin/arm-none-eabi-objcopy.exe
 MGBA := "C:/Program Files/mGBA/mGBA.exe"
-INCLUDE := src/include
 
 TEMP := build/temp
-MAINFILE := src/main.c
-GRAPHICSFILE := src/graphics.c
-GRAPHICSDATAFILE := src/graphicsdata.c
-USERINTERFACEFILE := src/userinterface.c
-ENGINEFILE := src/engine.c
+SRC := src/
+INCLUDE := src/include
+MAINFILE := $(SRC)main.c
+GRAPHICSFILE := $(SRC)graphics.c
+GRAPHICSDATAFILE := $(SRC)graphicsdata.c
+USERINTERFACEFILE := $(SRC)userinterface.c
+ENGINEFILE := $(SRC)engine.c
 OUTFILE := build/foolishness.gba
 
 #build and run

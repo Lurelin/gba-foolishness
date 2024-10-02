@@ -9,6 +9,7 @@
     "files.associations": {
         "toolbox.h": "c",
         "graphics.h": "c",
-        "userinterface.h": "c"
+        "userinterface.h": "c",
+        "stdlib.h": "c"
     }
 }
