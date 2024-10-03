@@ -7,3 +7,6 @@ ideas:
 - civ port/demake
 - metroidvania, 1 hp, medieval, 
 - factory game, but pipes instead of belts
+- mario maker style game
+- roguelike, but with an army
+- stack
